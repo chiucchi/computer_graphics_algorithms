@@ -51,9 +51,9 @@ class Paint:
         Button(win, text="Translação", command=self.translation).grid(row=1,
                                                                       column=2)
         self.x1 = StringVar()
-        Entry(win, textvariable=self.x1, width=2).grid(row=1, column=3)
+        Entry(win, textvariable=self.x1, width=5).grid(row=1, column=3)
         self.y1 = StringVar()
-        Entry(win, textvariable=self.y1, width=2).grid(row=1, column=4)
+        Entry(win, textvariable=self.y1, width=5).grid(row=1, column=4)
 
         Button(win, text="Rotação", command=self.draw_dda_line).grid(row=1,
                                                                      column=5)
@@ -143,18 +143,24 @@ class Paint:
     def draw_brese_line_selected(self):
         self.canvas.bind("<Button-1>", self.draw_brese_line)
 
-    def draw_brese_line(self, event):
+    def draw_brese_line(self, event, transform=False):
         global x1, y1, x2, y2
 
-        if self.click_num == 0:  # primeiro clique
-            x1 = event.x - 400
-            y1 = event.y - 400
-            self.click_num = 1
-            self.draw_brese_line()
-        else:  # segundo clique
-            x2 = event.x - 400
-            y2 = event.y - 400
-            self.click_num = 0
+        if not transform:
+            if self.click_num == 0:  # primeiro clique
+                x1 = event.x - 400
+                y1 = event.y - 400
+                self.click_num = 1
+                self.draw_brese_line()
+            else:  # segundo clique
+                x2 = event.x - 400
+                y2 = event.y - 400
+                self.click_num = 0
+        if transform:
+            x1 = self.new_x1
+            x2 = self.new_x2
+            y1 = self.new_y1
+            y2 = self.new_y2
 
         self.list = [x1, x2, y1, y2, "brese_line"]
 
@@ -279,12 +285,18 @@ class Paint:
                                 fill="black",
                                 width=2)
 
-    def draw_circ(self, event):
+    def draw_circ(self, event, transform=False):
         raio = int(self.raio.get())
-        self.xc = event.x - 400
-        self.yc = event.y - 400
-        self.x = 0
-        self.y = raio
+        if not transform:
+            self.xc = event.x - 400
+            self.yc = event.y - 400
+            self.x = 0
+            self.y = raio
+        if transform:
+            self.x = 0
+            self.y = raio
+            self.xc = self.new_x1
+            self.yc = self.new_y1
 
         # save positions for further transformations
         self.list = [self.xc, self.yc, self.x, self.y, "circle"]
@@ -313,20 +325,14 @@ class Paint:
         self.new_x2 = self.list[1] + tx
         self.new_y1 = self.list[2] + ty
         self.new_y2 = self.list[3] + ty
-        """ self.x1.set(str(new_x1))
-        self.y1.set(str(new_y1))
-        self.x2.set(str(new_x2))
-        self.y2.set(str(new_y2)) """
 
         if self.list[4] == "dda_line":
             print(self.new_x1, self.new_x2, self.new_y1, self.new_y2)
             self.draw_dda_line(self, transform=True)
         elif self.list[4] == "circle":
-            self.draw_circle()
+            self.draw_circ(self, transform=True)
         elif self.list[4] == "brese_line":
-            self.draw_bresenham()
-
-    # passar um parametro para identificar que é transformação e fazer o calculo com os outros valores
+            self.draw_brese_line(self, transform=True)
 
 
 paint_app = Paint()
