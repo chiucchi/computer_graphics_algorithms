@@ -11,7 +11,11 @@ class Paint:
         self.yc = 0
         self.x = 0
         self.y = 0
-        self.object_lst = []
+        self.list = []
+        self.new_x1 = 0
+        self.new_x2 = 0
+        self.new_y1 = 0
+        self.new_y2 = 0
 
         # Window instance
         win = Tk()
@@ -21,71 +25,80 @@ class Paint:
 
         # Canvas settings
         self.canvas = Canvas(win, width=850, height=800, background="white")
-        self.canvas.grid(row=2, columnspan=10)
+        self.canvas.grid(row=3, columnspan=10)
         self.canvas.configure(scrollregion=(-400, -400, 400, 400))
 
         frame = Frame(win)
 
         global click_num
         click_num = 0
-
-        # Buttons and Inputs
+        """  Buttons and Inputs """
+        # Rasterization (lines and circunferences)
         Label(win, text="Retas").grid(row=0, column=0)
-        dda_line_button = Button(win,
-                                 text="DDA",
-                                 command=self.draw_dda_line_selected)
-        dda_line_button.grid(row=0, column=1)
+        Button(win, text="DDA",
+               command=self.draw_dda_line_selected).grid(row=0, column=1)
 
-        brese_line_button = Button(win,
-                                   text="Bresenham",
-                                   command=self.draw_brese_line_selected)
-        brese_line_button.grid(row=0, column=2)
+        Button(win, text="Bresenham",
+               command=self.draw_brese_line_selected).grid(row=0, column=2)
 
-        circ_button = Button(win,
-                             text="Circunferência",
-                             command=self.draw_circ_selected)
-        circ_button.grid(row=0, column=4)
-        Label(win, text="Digite o raio:").grid(row=0, column=5)
+        Button(win, text="Circunferência",
+               command=self.draw_circ_selected).grid(row=0, column=3)
+        Label(win, text="Digite o raio:").grid(row=0, column=4)
         self.raio = StringVar()
-        Entry(win, textvariable=self.raio).grid(row=0, column=6)
+        Entry(win, textvariable=self.raio).grid(row=0, column=5)
+        # Geommetric transformations
+        Label(win, text="Transformações").grid(row=1, column=0)
+        Button(win, text="Translação", command=self.translation).grid(row=1,
+                                                                      column=2)
+        self.x1 = StringVar()
+        Entry(win, textvariable=self.x1, width=2).grid(row=1, column=3)
+        self.y1 = StringVar()
+        Entry(win, textvariable=self.y1, width=2).grid(row=1, column=4)
 
-        Label(win, text="Transformações").grid(row=1, column=1)
-        translation_button = Button(win,
-                                    text="Translação",
-                                    command=self.draw_dda_line)
-        translation_button.grid(row=1, column=2)
-        rotation_button = Button(win,
-                                 text="Rotação",
-                                 command=self.draw_dda_line)
-        rotation_button.grid(row=1, column=3)
-        scale_button = Button(win, text="Escala", command=self.draw_dda_line)
-        scale_button.grid(row=1, column=4)
-        clear_button = Button(win, text="Clear", command=self.clear_canvas)
-        clear_button.grid(row=1, column=5)
+        Button(win, text="Rotação", command=self.draw_dda_line).grid(row=1,
+                                                                     column=5)
+
+        Button(win, text="Escala", command=self.draw_dda_line).grid(row=1,
+                                                                    column=6)
+
+        Button(win, text="Reflexão X", command=None).grid(row=2, column=2)
+        Button(win, text="Reflexão Y", command=None).grid(row=2, column=3)
+        Button(win, text="Reflexão XY", command=None).grid(row=2, column=4)
+
+        # Clear canvas
+        clear_button = Button(win, text="Limpar", command=self.clear_canvas)
+        clear_button.grid(row=2, column=0)
 
         win.mainloop()
 
     def clear_canvas(self):
-        self.object_lst = []
+        self.list = []
         self.canvas.delete(ALL)
 
+    # Draw lines
     def draw_dda_line_selected(self):
         self.canvas.bind("<Button-1>", self.draw_dda_line)
 
-    def draw_dda_line(self, event):
+    def draw_dda_line(self, event, transform=False):
         global x1, y1, x2, y2
 
-        if self.click_num == 0:  # primeiro clique
-            x1 = event.x - 400
-            y1 = event.y - 400
-            self.click_num = 1
-            self.draw_dda_line()
-        elif self.click_num == 1:  # segundo clique
-            x2 = event.x - 400
-            y2 = event.y - 400
-            self.click_num = 0
+        if not transform:
+            if self.click_num == 0:  # primeiro clique
+                x1 = event.x - 400
+                y1 = event.y - 400
+                self.click_num = 1
+                self.draw_dda_line()
+            elif self.click_num == 1:  # segundo clique
+                x2 = event.x - 400
+                y2 = event.y - 400
+                self.click_num = 0
+        if transform:
+            x1 = self.new_x1
+            x2 = self.new_x2
+            y1 = self.new_y1
+            y2 = self.new_y2
 
-        self.object_lst = [x1, x2, y1, y2, "dda_line"]
+        self.list = [x1, x2, y1, y2, "dda_line"]
 
         passos = 0
         x_incr = 0
@@ -107,7 +120,7 @@ class Paint:
                                 round(x) + 1,
                                 round(y) + 1,
                                 fill="black",
-                                width=5)  # desenha o ponto
+                                width=2)  # desenha o ponto
 
         for i in range(passos):
             x = x + x_incr
@@ -118,7 +131,8 @@ class Paint:
                                     round(x) + 1,
                                     round(y) + 1,
                                     fill="black",
-                                    width=5)  # desenha o ponto
+                                    width=2)  # desenha o ponto
+        print(x1, x2, y1, y2)
         x1 = None
         x2 = None
         y1 = None
@@ -142,7 +156,7 @@ class Paint:
             y2 = event.y - 400
             self.click_num = 0
 
-        self.object_lst = [x1, x2, y1, y2, "brese_line"]
+        self.list = [x1, x2, y1, y2, "brese_line"]
 
         dx = x2 - x1
         dy = y2 - y1
@@ -168,7 +182,7 @@ class Paint:
                                 round(x) + 1,
                                 round(y) + 1,
                                 fill="black",
-                                width=5)  # desenha o ponto
+                                width=2)  # desenha o ponto
 
         p = 0
         const1 = 0
@@ -192,7 +206,7 @@ class Paint:
                                         round(x) + 1,
                                         round(y) + 1,
                                         fill="black",
-                                        width=5)  # desenha o ponto
+                                        width=2)  # desenha o ponto
         else:
             p = 2 * dx - dy
             const1 = 2 * dx
@@ -209,7 +223,7 @@ class Paint:
                                         round(x) + 1,
                                         round(y) + 1,
                                         fill="black",
-                                        width=5)  # desenha o ponto
+                                        width=2)  # desenha o ponto
 
         # zerando tudo
         x1 = None
@@ -219,6 +233,7 @@ class Paint:
 
         self.canvas.unbind("<Button-1>")
 
+    # Draw circunference
     def draw_circ_selected(self):
         self.canvas.bind("<Button-1>", self.draw_circ)
 
@@ -227,42 +242,42 @@ class Paint:
                                 self.yc + self.y, (self.xc + self.x) + 1,
                                 (self.yc + self.y) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc - self.x,
                                 self.yc + self.y, (self.xc - self.x) + 1,
                                 (self.yc + self.y) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc + self.x,
                                 self.yc - self.y, (self.xc + self.x) + 1,
                                 (self.yc - self.y) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc - self.x,
                                 self.yc - self.y, (self.xc - self.x) + 1,
                                 (self.yc - self.y) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc + self.y,
                                 self.yc + self.x, (self.xc + self.y) + 1,
                                 (self.yc + self.x) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc - self.y,
                                 self.yc + self.x, (self.xc - self.y) + 1,
                                 (self.yc + self.x) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc + self.y,
                                 self.yc - self.x, (self.xc + self.y) + 1,
                                 (self.yc - self.x) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
         self.canvas.create_oval(self.xc - self.y,
                                 self.yc - self.x, (self.xc - self.y) + 1,
                                 (self.yc - self.x) + 1,
                                 fill="black",
-                                width=5)
+                                width=2)
 
     def draw_circ(self, event):
         raio = int(self.raio.get())
@@ -272,7 +287,7 @@ class Paint:
         self.y = raio
 
         # save positions for further transformations
-        self.object_lst = [self.xc, self.yc, self.x, self.y, "circle"]
+        self.list = [self.xc, self.yc, self.x, self.y, "circle"]
 
         p = 3 - 2 * raio
 
@@ -288,6 +303,30 @@ class Paint:
             self.plot_circle_points()
 
         self.canvas.unbind("<Button-1>")
+
+    # Transformations
+    def translation(self):
+        tx = int(self.x1.get())
+        ty = int(self.y1.get())
+
+        self.new_x1 = self.list[0] + tx
+        self.new_x2 = self.list[1] + tx
+        self.new_y1 = self.list[2] + ty
+        self.new_y2 = self.list[3] + ty
+        """ self.x1.set(str(new_x1))
+        self.y1.set(str(new_y1))
+        self.x2.set(str(new_x2))
+        self.y2.set(str(new_y2)) """
+
+        if self.list[4] == "dda_line":
+            print(self.new_x1, self.new_x2, self.new_y1, self.new_y2)
+            self.draw_dda_line(self, transform=True)
+        elif self.list[4] == "circle":
+            self.draw_circle()
+        elif self.list[4] == "brese_line":
+            self.draw_bresenham()
+
+    # passar um parametro para identificar que é transformação e fazer o calculo com os outros valores
 
 
 paint_app = Paint()
