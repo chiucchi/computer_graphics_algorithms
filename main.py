@@ -58,12 +58,14 @@ class Paint:
         Button(win, text="Rotação", command=self.draw_dda_line).grid(row=1,
                                                                      column=5)
 
-        Button(win, text="Escala", command=self.draw_dda_line).grid(row=1,
-                                                                    column=6)
+        Button(win, text="Escala", command=self.scale).grid(row=1, column=6)
 
-        Button(win, text="Reflexão X", command=None).grid(row=2, column=2)
-        Button(win, text="Reflexão Y", command=None).grid(row=2, column=3)
-        Button(win, text="Reflexão XY", command=None).grid(row=2, column=4)
+        Button(win, text="Reflexão X",
+               command=self.reflection_x).grid(row=2, column=2)
+        Button(win, text="Reflexão Y",
+               command=self.reflection_y).grid(row=2, column=3)
+        Button(win, text="Reflexão XY",
+               command=self.reflection_xy).grid(row=2, column=4)
 
         # Clear canvas
         clear_button = Button(win, text="Limpar", command=self.clear_canvas)
@@ -327,7 +329,61 @@ class Paint:
         self.new_y2 = self.list[3] + ty
 
         if self.list[4] == "dda_line":
-            print(self.new_x1, self.new_x2, self.new_y1, self.new_y2)
+            self.draw_dda_line(self, transform=True)
+        elif self.list[4] == "circle":
+            self.draw_circ(self, transform=True)
+        elif self.list[4] == "brese_line":
+            self.draw_brese_line(self, transform=True)
+
+    def scale(self):
+        tx = int(self.x1.get())
+        ty = int(self.y1.get())
+
+        self.new_x1 = self.list[0] * tx
+        self.new_x2 = self.list[1] * tx
+        self.new_y1 = self.list[2] * ty
+        self.new_y2 = self.list[3] * ty
+
+        if self.list[4] == "dda_line":
+            self.draw_dda_line(self, transform=True)
+        elif self.list[4] == "circle":
+            self.draw_circ(self, transform=True)
+        elif self.list[4] == "brese_line":
+            self.draw_brese_line(self, transform=True)
+
+    def reflection_x(self):
+        self.new_x1 = self.list[0] * 1
+        self.new_x2 = self.list[1] * 1
+        self.new_y1 = self.list[2] * -1
+        self.new_y2 = self.list[3] * -1
+
+        if self.list[4] == "dda_line":
+            self.draw_dda_line(self, transform=True)
+        elif self.list[4] == "circle":
+            self.draw_circ(self, transform=True)
+        elif self.list[4] == "brese_line":
+            self.draw_brese_line(self, transform=True)
+
+    def reflection_y(self):
+        self.new_x1 = self.list[0] * -1
+        self.new_x2 = self.list[1] * -1
+        self.new_y1 = self.list[2] * 1
+        self.new_y2 = self.list[3] * 1
+
+        if self.list[4] == "dda_line":
+            self.draw_dda_line(self, transform=True)
+        elif self.list[4] == "circle":
+            self.draw_circ(self, transform=True)
+        elif self.list[4] == "brese_line":
+            self.draw_brese_line(self, transform=True)
+
+    def reflection_xy(self):
+        self.new_x1 = self.list[0] * -1
+        self.new_x2 = self.list[1] * -1
+        self.new_y1 = self.list[2] * -1
+        self.new_y2 = self.list[3] * -1
+
+        if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
         elif self.list[4] == "circle":
             self.draw_circ(self, transform=True)
