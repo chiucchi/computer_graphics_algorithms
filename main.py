@@ -1,5 +1,6 @@
 # Import the required libraries
 from tkinter import *
+from math import sin, cos, radians
 
 
 class Paint:
@@ -16,6 +17,7 @@ class Paint:
         self.new_x2 = 0
         self.new_y1 = 0
         self.new_y2 = 0
+        self.ratio = 0
 
         # Window instance
         win = Tk()
@@ -55,10 +57,12 @@ class Paint:
         self.y1 = StringVar()
         Entry(win, textvariable=self.y1, width=5).grid(row=1, column=4)
 
-        Button(win, text="Rotação", command=self.draw_dda_line).grid(row=1,
-                                                                     column=5)
+        Button(win, text="Rotação", command=self.rotation).grid(row=1,
+                                                                column=5)
+        self.angle = StringVar()
+        Entry(win, textvariable=self.angle, width=5).grid(row=1, column=6)
 
-        Button(win, text="Escala", command=self.scale).grid(row=1, column=6)
+        Button(win, text="Escala", command=self.scale).grid(row=1, column=7)
 
         Button(win, text="Reflexão X",
                command=self.reflection_x).grid(row=2, column=2)
@@ -134,7 +138,7 @@ class Paint:
                                     round(y) + 1,
                                     fill="black",
                                     width=2)  # desenha o ponto
-        print(x1, x2, y1, y2)
+        print("x1 ", x1, "x2 ", x2, "y1 ", y1, "y2 ", y2)
         x1 = None
         x2 = None
         y1 = None
@@ -290,20 +294,22 @@ class Paint:
     def draw_circ(self, event, transform=False):
         raio = int(self.raio.get())
         if not transform:
+            self.ratio = raio
             self.xc = event.x - 400
             self.yc = event.y - 400
             self.x = 0
             self.y = raio
         if transform:
             self.x = 0
-            self.y = raio
+            self.y = self.ratio
             self.xc = self.new_x1
             self.yc = self.new_y1
+            raio = self.ratio
 
         # save positions for further transformations
-        self.list = [self.xc, self.yc, self.x, self.y, "circle"]
+        self.list = [self.xc, self.x, self.yc, self.y, "circle"]
 
-        p = 3 - 2 * raio
+        p = 3 - (2 * raio)
 
         self.plot_circle_points()
 
@@ -347,6 +353,7 @@ class Paint:
         if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
         elif self.list[4] == "circle":
+            self.ratio = self.ratio * tx  # erro aqui
             self.draw_circ(self, transform=True)
         elif self.list[4] == "brese_line":
             self.draw_brese_line(self, transform=True)
@@ -382,6 +389,31 @@ class Paint:
         self.new_x2 = self.list[1] * -1
         self.new_y1 = self.list[2] * -1
         self.new_y2 = self.list[3] * -1
+
+        if self.list[4] == "dda_line":
+            self.draw_dda_line(self, transform=True)
+        elif self.list[4] == "circle":
+            self.draw_circ(self, transform=True)
+        elif self.list[4] == "brese_line":
+            self.draw_brese_line(self, transform=True)
+
+    def rotation(self):
+        angle = int(self.angle.get())
+        ratio = round(radians(angle))
+
+        print(radians(angle), "º: ", "cos: ", round(cos(radians(angle))),
+              "sen: ", round(sin(radians(angle))))
+
+        # lista: [0] = x1 [1] = x2 [2] = y1 [3] = y2
+
+        self.new_x1 = self.list[0]
+        self.new_y1 = self.list[2]
+        self.new_x2 = int((self.list[1] * cos(ratio)) -
+                          (self.list[3] * sin(ratio)))
+        self.new_y2 = int((self.list[1] * sin(ratio)) +
+                          (self.list[3] * cos(ratio)))
+
+        print(self.new_x2, self.new_y2)
 
         if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
