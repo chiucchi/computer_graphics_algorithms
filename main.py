@@ -18,6 +18,10 @@ class Paint:
         self.new_y1 = 0
         self.new_y2 = 0
         self.ratio = 0
+        self.x_max = 200
+        self.y_max = 200
+        self.x_min = -200
+        self.y_min = -200
 
         # Window instance
         win = Tk()
@@ -27,14 +31,14 @@ class Paint:
 
         # Canvas settings
         self.canvas = Canvas(win, width=850, height=800, background="white")
-        self.canvas.grid(row=3, columnspan=10)
+        self.canvas.grid(row=4, columnspan=10)
         self.canvas.configure(scrollregion=(-400, -400, 400, 400))
 
         frame = Frame(win)
 
         global click_num
         click_num = 0
-        """  Buttons and Inputs """
+        """ ### Buttons and Inputs ### """
         # Rasterization (lines and circunferences)
         Label(win, text="Retas").grid(row=0, column=0)
         Button(win, text="DDA",
@@ -47,22 +51,23 @@ class Paint:
                command=self.draw_circ_selected).grid(row=0, column=3)
         Label(win, text="Digite o raio:").grid(row=0, column=4)
         self.raio = StringVar()
-        Entry(win, textvariable=self.raio).grid(row=0, column=5)
+        Entry(win, textvariable=self.raio, width=5).grid(row=0, column=5)
+
         # Geommetric transformations
         Label(win, text="Transformações").grid(row=1, column=0)
         Button(win, text="Translação", command=self.translation).grid(row=1,
                                                                       column=2)
         self.x1 = StringVar()
-        Entry(win, textvariable=self.x1, width=5).grid(row=1, column=3)
+        Entry(win, textvariable=self.x1, width=5).grid(row=1, column=4)
         self.y1 = StringVar()
-        Entry(win, textvariable=self.y1, width=5).grid(row=1, column=4)
+        Entry(win, textvariable=self.y1, width=5).grid(row=1, column=5)
 
         Button(win, text="Rotação", command=self.rotation).grid(row=1,
-                                                                column=5)
+                                                                column=6)
         self.angle = StringVar()
-        Entry(win, textvariable=self.angle, width=5).grid(row=1, column=6)
+        Entry(win, textvariable=self.angle, width=5).grid(row=1, column=7)
 
-        Button(win, text="Escala", command=self.scale).grid(row=1, column=7)
+        Button(win, text="Escala", command=self.scale).grid(row=1, column=3)
 
         Button(win, text="Reflexão X",
                command=self.reflection_x).grid(row=2, column=2)
@@ -70,6 +75,22 @@ class Paint:
                command=self.reflection_y).grid(row=2, column=3)
         Button(win, text="Reflexão XY",
                command=self.reflection_xy).grid(row=2, column=4)
+
+        # Clipping functions
+        Button(win, text="Cohen Clip",
+               command=self.cohen_sutherland).grid(row=2, column=5)
+        Button(win, text="Liang-Barsky",
+               command=self.reflection_xy).grid(row=2, column=6)
+
+        # Janela values
+        Label(win, text="Xjmax:").grid(row=3, column=0)
+        Entry(win, textvariable=self.x_max, width=5).grid(row=3, column=1)
+        Label(win, text="Yjmax:").grid(row=3, column=2)
+        Entry(win, textvariable=self.y_max, width=5).grid(row=3, column=3)
+        Label(win, text="Xjmin:").grid(row=3, column=4)
+        Entry(win, textvariable=self.x_min, width=5).grid(row=3, column=5)
+        Label(win, text="Yjmin:").grid(row=3, column=6)
+        Entry(win, textvariable=self.y_min, width=5).grid(row=3, column=7)
 
         # Clear canvas
         clear_button = Button(win, text="Limpar", command=self.clear_canvas)
@@ -353,7 +374,7 @@ class Paint:
         if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
         elif self.list[4] == "circle":
-            self.ratio = self.ratio * tx  # erro aqui
+            self.ratio = self.ratio * tx
             self.draw_circ(self, transform=True)
         elif self.list[4] == "brese_line":
             self.draw_brese_line(self, transform=True)
@@ -401,9 +422,6 @@ class Paint:
         angle = int(self.angle.get())
         ratio = round(radians(angle))
 
-        print(radians(angle), "º: ", "cos: ", round(cos(radians(angle))),
-              "sen: ", round(sin(radians(angle))))
-
         # lista: [0] = x1 [1] = x2 [2] = y1 [3] = y2
 
         self.new_x1 = self.list[0]
@@ -421,6 +439,82 @@ class Paint:
             self.draw_circ(self, transform=True)
         elif self.list[4] == "brese_line":
             self.draw_brese_line(self, transform=True)
+
+    def compute_code(self, x, y):
+        code = 0
+        if x < self.x_min:  # to the left of window
+            code |= 1
+        elif x > self.x_max:  # to the right of window
+            code |= 2
+        if y < self.y_min:  # below the window
+            code |= 4
+        elif y > self.y_max:  # above the window
+            code |= 8
+
+        return code
+
+    def cohen_sutherland(self):
+
+        # retrieve line initial and final points
+        x1 = self.list[0]
+        x2 = self.list[1]
+        y1 = self.list[2]
+        y2 = self.list[3]
+
+        code1 = self.compute_code(x1, y1)
+        code2 = self.compute_code(x2, y2)
+        accept = False
+
+        while True:
+            if code1 == 0 and code2 == 0:
+                accept = True
+                break
+            elif (code1 & code2) != 0:
+                break
+            else:
+                x = 1.0
+                y = 1.0
+                if code1 != 0:
+                    code_out = code1
+                else:
+                    code_out = code2
+                if code_out & 8:
+                    x = x1 + (x2 - x1) * \
+                                    (self.y_max - y1) / (y2 - y1)
+                    y = self.y_max
+                elif code_out & 4:
+                    x = x1 + (x2 - x1) * \
+                                    (self.y_min - y1) / (y2 - y1)
+                    y = self.y_min
+                elif code_out & 2:
+                    y = y1 + (y2 - y1) * \
+                                    (self.x_max - x1) / (x2 - x1)
+                    x = self.x_max
+                elif code_out & 1:
+                    y = y1 + (y2 - y1) * \
+                                    (self.x_min - x1) / (x2 - x1)
+                    x = self.x_min
+                if code_out == code1:
+                    x1 = x
+                    y1 = y
+                    code1 = self.compute_code(x1, y1)
+
+                else:
+                    x2 = x
+                    y2 = y
+                    code2 = self.compute_code(x2, y2)
+
+        if accept:
+            self.new_x1 = int(x1)
+            self.new_x2 = int(x2)
+            self.new_y1 = int(y1)
+            self.new_y2 = int(y2)
+            self.clear_canvas()
+            self.draw_brese_line(self, transform=True)
+            print("Line accepted from %.2f, %.2f to %.2f, %.2f" %
+                  (x1, y1, x2, y2))
+        else:
+            print("Line non accepted")
 
 
 paint_app = Paint()
