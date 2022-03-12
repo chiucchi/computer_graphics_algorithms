@@ -18,10 +18,6 @@ class Paint:
         self.new_y1 = 0
         self.new_y2 = 0
         self.ratio = 0
-        self.x_max = 200
-        self.y_max = 200
-        self.x_min = -200
-        self.y_min = -200
 
         # Window instance
         win = Tk()
@@ -84,12 +80,16 @@ class Paint:
 
         # Janela values
         Label(win, text="Xjmax:").grid(row=3, column=0)
+        self.x_max = StringVar()
         Entry(win, textvariable=self.x_max, width=5).grid(row=3, column=1)
         Label(win, text="Yjmax:").grid(row=3, column=2)
+        self.y_max = StringVar()
         Entry(win, textvariable=self.y_max, width=5).grid(row=3, column=3)
         Label(win, text="Xjmin:").grid(row=3, column=4)
+        self.x_min = StringVar()
         Entry(win, textvariable=self.x_min, width=5).grid(row=3, column=5)
         Label(win, text="Yjmin:").grid(row=3, column=6)
+        self.y_min = StringVar()
         Entry(win, textvariable=self.y_min, width=5).grid(row=3, column=7)
 
         # Clear canvas
@@ -454,6 +454,10 @@ class Paint:
         return code
 
     def cohen_sutherland(self):
+        self.x_max = int(self.x_max.get())
+        self.y_max = int(self.y_max.get())
+        self.x_min = int(self.x_min.get())
+        self.y_min = int(self.y_min.get())
 
         # retrieve line initial and final points
         x1 = self.list[0]
