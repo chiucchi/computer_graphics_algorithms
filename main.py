@@ -76,7 +76,7 @@ class Paint:
         Button(win, text="Cohen Clip",
                command=self.cohen_sutherland).grid(row=2, column=5)
         Button(win, text="Liang-Barsky",
-               command=self.reflection_xy).grid(row=2, column=6)
+               command=self.liang_barsky).grid(row=2, column=6)
 
         # Janela values
         Label(win, text="Xjmax:").grid(row=3, column=0)
@@ -454,10 +454,15 @@ class Paint:
         return code
 
     def cohen_sutherland(self):
-        self.x_max = int(self.x_max.get())
-        self.y_max = int(self.y_max.get())
-        self.x_min = int(self.x_min.get())
-        self.y_min = int(self.y_min.get())
+        x_max = int(self.x_max.get())
+        y_max = int(self.y_max.get())
+        x_min = int(self.x_min.get())
+        y_min = int(self.y_min.get())
+
+        self.x_max = x_max
+        self.y_max = y_max
+        self.x_min = x_min
+        self.y_min = y_min
 
         # retrieve line initial and final points
         x1 = self.list[0]
@@ -485,19 +490,19 @@ class Paint:
                 if code_out & 8:
                     x = x1 + (x2 - x1) * \
                                     (self.y_max - y1) / (y2 - y1)
-                    y = self.y_max
+                    y = y_max
                 elif code_out & 4:
                     x = x1 + (x2 - x1) * \
                                     (self.y_min - y1) / (y2 - y1)
-                    y = self.y_min
+                    y = y_min
                 elif code_out & 2:
                     y = y1 + (y2 - y1) * \
                                     (self.x_max - x1) / (x2 - x1)
-                    x = self.x_max
+                    x = x_max
                 elif code_out & 1:
                     y = y1 + (y2 - y1) * \
                                     (self.x_min - x1) / (x2 - x1)
-                    x = self.x_min
+                    x = x_min
                 if code_out == code1:
                     x1 = x
                     y1 = y
@@ -519,6 +524,64 @@ class Paint:
                   (x1, y1, x2, y2))
         else:
             print("Line non accepted")
+
+    def cliptest(self, p, q, u1, u2):
+        result = True
+        if p < 0.0:
+            r = q / p
+            if r > u2:
+                result = False
+            elif r > u1:
+                u1 = r
+        elif p > 0.0:
+            r = q / p
+            if r < u1:
+                result = False
+            elif r < u2:
+                u2 = r
+        elif q < 0.0:
+            result = False
+
+        return result
+
+    def liang_barsky(self):
+        x_max = self.x_max.get()
+        y_max = self.y_max.get()
+        x_min = self.x_min.get()
+        y_min = self.y_min.get()
+
+        self.x_max = int(x_max)
+        self.y_max = int(y_max)
+        self.x_min = int(x_min)
+        self.y_min = int(y_min)
+
+        # retrieve line initial and final points
+        x1 = self.list[0]
+        x2 = self.list[1]
+        y1 = self.list[2]
+        y2 = self.list[3]
+
+        u1 = 0.0
+        u2 = 1.0
+        dx = x2 - x1
+        dy = y2 - y1
+
+        if self.cliptest(-dx, x1 - self.x_min, u1, u2):
+            if self.cliptest(dx, self.x_max - x1, u1, u2):
+                if self.cliptest(-dy, y1 - self.y_min, u1, u2):
+                    if self.cliptest(dy, self.y_max - y1, u1, u2):
+                        if u2 < 1.0:
+                            x2 = x1 + u2 * dx
+                            y2 = y1 + u2 * dy
+                        if u1 > 0.0:
+                            x1 = x1 + u1 * dx
+                            y1 = y1 + u1 * dy
+                        self.new_x1 = int(x1)
+                        self.new_x2 = int(x2)
+                        self.new_y1 = int(y1)
+                        self.new_y2 = int(y2)
+                        self.clear_canvas()
+                        self.draw_brese_line(self, transform=True)
 
 
 paint_app = Paint()
