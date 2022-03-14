@@ -150,7 +150,7 @@ class Paint:
                                 round(y) + 1,
                                 fill="black",
                                 width=2)  # draw point
-        for i in range(passos):
+        for i in range(int(passos)):
             x = x + x_incr
             y = y + y_incr
 
@@ -230,7 +230,7 @@ class Paint:
             const1 = 2 * dy
             const2 = 2 * (dy - dx)
 
-            for i in range(dx):
+            for i in range(int(dx)):
                 x = x + x_incr
                 if (p < 0):
                     p = p + const1
@@ -430,19 +430,19 @@ class Paint:
         angle = int(self.angle.get())
         ratio = radians(angle)
 
+        # translate it to origin point (0,0)
         self.new_x1 = 0
         self.new_y1 = 0
-        self.new_x2 = self.new_x2 - self.list[0]
-        self.new_y2 = self.new_y2 - self.list[2]
+        new_x2 = self.list[1] - self.list[0]
+        new_y2 = self.list[3] - self.list[2]
 
-        self.new_x2 = int((self.list[1] * cos(ratio)) -
-                          (self.list[3] * sin(ratio)))
-        self.new_y2 = int((self.list[1] * sin(ratio)) +
-                          (self.list[3] * cos(ratio)))
+        x2 = (new_x2 * cos(ratio)) - (new_y2 * sin(ratio))
+        y2 = (new_x2 * sin(ratio)) + (new_y2 * cos(ratio))
+
         self.new_x1 = self.list[0]
         self.new_y1 = self.list[2]
-        self.new_x2 = self.new_x2 + self.list[0]
-        self.new_y2 = self.new_y2 + self.list[2]
+        self.new_x2 = x2 + self.list[0]
+        self.new_y2 = y2 + self.list[2]
 
         if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
