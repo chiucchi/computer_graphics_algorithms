@@ -6,7 +6,7 @@ from math import sin, cos, radians
 class Paint:
 
     def __init__(self):
-        # Variables
+        # Global variables
         self.click_num = 0
         self.xc = 0
         self.yc = 0
@@ -18,6 +18,8 @@ class Paint:
         self.new_y1 = 0
         self.new_y2 = 0
         self.ratio = 0
+        global click_num
+        click_num = 0
 
         # Window instance
         win = Tk()
@@ -31,9 +33,6 @@ class Paint:
         self.canvas.configure(scrollregion=(-400, -400, 400, 400))
 
         frame = Frame(win)
-
-        global click_num
-        click_num = 0
         """ ### Buttons and Inputs ### """
         # Rasterization (lines and circunferences)
         Label(win, text="Retas").grid(row=0, column=0)
@@ -78,7 +77,7 @@ class Paint:
         Button(win, text="Liang-Barsky",
                command=self.liang_barsky).grid(row=2, column=6)
 
-        # Janela values
+        # Clipping window values
         Label(win, text="Xjmax:").grid(row=3, column=0)
         self.x_max = StringVar()
         Entry(win, textvariable=self.x_max, width=5).grid(row=3, column=1)
@@ -110,22 +109,23 @@ class Paint:
         global x1, y1, x2, y2
 
         if not transform:
-            if self.click_num == 0:  # primeiro clique
+            if self.click_num == 0:  # detect first click
                 x1 = event.x - 400
                 y1 = event.y - 400
                 self.click_num = 1
                 self.draw_dda_line()
-            elif self.click_num == 1:  # segundo clique
+            elif self.click_num == 1:  # detect second click
                 x2 = event.x - 400
                 y2 = event.y - 400
                 self.click_num = 0
-        if transform:
-            x1 = self.new_x1
+        if transform:  # if dda function is called by a transformation function,
+            x1 = self.new_x1  # use the new values instead of listen to clicks
             x2 = self.new_x2
             y1 = self.new_y1
             y2 = self.new_y2
 
-        self.list = [x1, x2, y1, y2, "dda_line"]
+        self.list = [x1, x2, y1, y2,
+                     "dda_line"]  # save values for further transformations
 
         passos = 0
         x_incr = 0
@@ -147,8 +147,7 @@ class Paint:
                                 round(x) + 1,
                                 round(y) + 1,
                                 fill="black",
-                                width=2)  # desenha o ponto
-
+                                width=2)  # draw point
         for i in range(passos):
             x = x + x_incr
             y = y + y_incr
@@ -158,14 +157,17 @@ class Paint:
                                     round(x) + 1,
                                     round(y) + 1,
                                     fill="black",
-                                    width=2)  # desenha o ponto
-        print("x1 ", x1, "x2 ", x2, "y1 ", y1, "y2 ", y2)
+                                    width=2)  # draw point
+        print("x1 ", x1, "x2 ", x2, "y1 ", y1, "y2 ", y2)  # del
+        # reset values for the next rasterization
         x1 = None
         x2 = None
         y1 = None
         y2 = None
 
-        self.canvas.unbind("<Button-1>")
+        self.canvas.unbind(
+            "<Button-1>"
+        )  # detach click listener, you can only draw one line at a time
 
     def draw_brese_line_selected(self):
         self.canvas.bind("<Button-1>", self.draw_brese_line)
@@ -174,22 +176,23 @@ class Paint:
         global x1, y1, x2, y2
 
         if not transform:
-            if self.click_num == 0:  # primeiro clique
+            if self.click_num == 0:  # detect first click
                 x1 = event.x - 400
                 y1 = event.y - 400
                 self.click_num = 1
                 self.draw_brese_line()
-            else:  # segundo clique
+            else:  # detect second click
                 x2 = event.x - 400
                 y2 = event.y - 400
                 self.click_num = 0
-        if transform:
-            x1 = self.new_x1
+        if transform:  # if bresenham function is called by a transformation function,
+            x1 = self.new_x1  # it will use the new values instead of listen to clicks
             x2 = self.new_x2
             y1 = self.new_y1
             y2 = self.new_y2
 
-        self.list = [x1, x2, y1, y2, "brese_line"]
+        self.list = [x1, x2, y1, y2,
+                     "brese_line"]  # save values for further transformations
 
         dx = x2 - x1
         dy = y2 - y1
@@ -215,7 +218,7 @@ class Paint:
                                 round(x) + 1,
                                 round(y) + 1,
                                 fill="black",
-                                width=2)  # desenha o ponto
+                                width=2)  # draw point
 
         p = 0
         const1 = 0
@@ -239,7 +242,7 @@ class Paint:
                                         round(x) + 1,
                                         round(y) + 1,
                                         fill="black",
-                                        width=2)  # desenha o ponto
+                                        width=2)  # draw point
         else:
             p = 2 * dx - dy
             const1 = 2 * dx
@@ -256,20 +259,23 @@ class Paint:
                                         round(x) + 1,
                                         round(y) + 1,
                                         fill="black",
-                                        width=2)  # desenha o ponto
+                                        width=2)  # draw point
 
-        # zerando tudo
+        # reset values for the next rasterization
         x1 = None
         x2 = None
         y1 = None
         y2 = None
 
-        self.canvas.unbind("<Button-1>")
+        self.canvas.unbind(
+            "<Button-1>"
+        )  # detach click listener, you can only draw one line at a time
 
     # Draw circunference
     def draw_circ_selected(self):
         self.canvas.bind("<Button-1>", self.draw_circ)
 
+    # plot points function
     def plot_circle_points(self):
         self.canvas.create_oval(self.xc + self.x,
                                 self.yc + self.y, (self.xc + self.x) + 1,
@@ -320,8 +326,8 @@ class Paint:
             self.yc = event.y - 400
             self.x = 0
             self.y = raio
-        if transform:
-            self.x = 0
+        if transform:  # if circunference function is called by a transformation function,
+            self.x = 0  # it will use the new values instead of listen to clicks
             self.y = self.ratio
             self.xc = self.new_x1
             self.yc = self.new_y1
@@ -343,9 +349,10 @@ class Paint:
             self.x = self.x + 1
             self.plot_circle_points()
 
-        self.canvas.unbind("<Button-1>")
+        self.canvas.unbind("<Button-1>")  # detach click listener
 
-    # Transformations
+    """ Transformations """
+
     def translation(self):
         tx = int(self.x1.get())
         ty = int(self.y1.get())
@@ -374,7 +381,7 @@ class Paint:
         if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
         elif self.list[4] == "circle":
-            self.ratio = self.ratio * tx
+            self.ratio = self.ratio * tx  # change ratio value for the new one
             self.draw_circ(self, transform=True)
         elif self.list[4] == "brese_line":
             self.draw_brese_line(self, transform=True)
@@ -518,8 +525,10 @@ class Paint:
             self.new_x2 = int(x2)
             self.new_y1 = int(y1)
             self.new_y2 = int(y2)
-            self.clear_canvas()
-            self.draw_brese_line(self, transform=True)
+            self.clear_canvas(
+            )  # clear canvas so when the clip result is printed, only this will be visible
+            self.draw_brese_line(
+                self, transform=True)  # draw only the accepted parts
             print("Line accepted from %.2f, %.2f to %.2f, %.2f" %
                   (x1, y1, x2, y2))
         else:
@@ -580,8 +589,11 @@ class Paint:
                         self.new_x2 = int(x2)
                         self.new_y1 = int(y1)
                         self.new_y2 = int(y2)
-                        self.clear_canvas()
-                        self.draw_brese_line(self, transform=True)
+                        self.clear_canvas(
+                        )  # clear canvas so when the clip result is printed, only this will be visible
+                        self.draw_brese_line(
+                            self,
+                            transform=True)  # draw only the accepted parts
 
 
 paint_app = Paint()
