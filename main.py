@@ -428,16 +428,21 @@ class Paint:
 
     def rotation(self):
         angle = int(self.angle.get())
-        ratio = round(radians(angle))
+        ratio = radians(angle)
 
-        # lista: [0] = x1 [1] = x2 [2] = y1 [3] = y2
+        self.new_x1 = 0
+        self.new_y1 = 0
+        self.new_x2 = self.new_x2 - self.list[0]
+        self.new_y2 = self.new_y2 - self.list[2]
 
-        self.new_x1 = self.list[0]
-        self.new_y1 = self.list[2]
         self.new_x2 = int((self.list[1] * cos(ratio)) -
                           (self.list[3] * sin(ratio)))
         self.new_y2 = int((self.list[1] * sin(ratio)) +
                           (self.list[3] * cos(ratio)))
+        self.new_x1 = self.list[0]
+        self.new_y1 = self.list[2]
+        self.new_x2 = self.new_x2 + self.list[0]
+        self.new_y2 = self.new_y2 + self.list[2]
 
         if self.list[4] == "dda_line":
             self.draw_dda_line(self, transform=True)
